@@ -1,14 +1,19 @@
 > [!WARNING]
 > This plugin is not heavily tested so if any issue found, please open a ticket and describe the issue as much as you can.
 
+> [!CAUTION]
+> Do not use `SetPlayerCookie` at `EventPlayerDisconnect (HookMode.Post)` event as that is when the main plugin saves cookies of a player. (Use HookMode.Pre) or when some command is executed like in example.
+
 # Clientprefs for CSSharp
 This plugin exposes some natives for developers to save player data to SQLite / MySQL without actually adding sql code to your plugin giving developers easy access to save player cookie to database.
 
 ## Example
 ```c#
+using Clientprefs.API;
 
 private readonly PluginCapability<IClientprefsApi> g_PluginCapability = new("Clientprefs");
 private IClientprefsApi? ClientprefsApi;
+private int g_iCookieID = 0;
 
 public override void OnAllPluginsLoaded(bool hotReload)
 {
@@ -82,6 +87,6 @@ public void OnExampleCommand(CCSPlayerController? caller, CommandInfo _)
 }
 ```
 
-> [!CAUTION]
-> Do not use `SetPlayerCookie` at `EventPlayerDisconnect (HookMode.Post)` event as that is when the main plugin saves cookies of a player. (Use HookMode.Pre) or when some command is executed like in example.
+## Things left to implement
+[ ] css_settings
 
