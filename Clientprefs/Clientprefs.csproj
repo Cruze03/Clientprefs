@@ -4,7 +4,6 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
  <ItemGroup>
@@ -15,9 +14,10 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="MySqlConnector" Version="*" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="*" />
     <PackageReference Include="Dapper" Version="*" />
     <Reference Include="SharedApi">
-      <HintPath>../ChatProcessorApi\ChatProcessorApi.dll</HintPath>
+      <HintPath>../ClientprefsApi/ClientprefsApi.dll</HintPath>
     </Reference>
 
   </ItemGroup>

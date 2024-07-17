@@ -1,0 +1,51 @@
+{    
+    "Cookie Usage":
+	{
+		"en":			"Usage: sm_cookies <name> [value]"
+	},
+
+    "Cookie List":
+	{
+		"en":			"CounterStrikeSharp Cookie List"
+	},
+	
+	"Printing Cookie List":
+	{
+		"en":			"Printing cookie list to console"
+	},
+	
+	"Cookie not Found":
+	{
+		"en":			"Could not find cookie \"{0}\""
+	},
+	
+	"Cookie Value":
+	{
+		"en":			"{0} ({1})'s value is {2}"
+	},
+	
+	"Protected Cookie":
+	{
+		"en":			"Cannot change the value of protected cookie \"{0}\""
+	},
+	
+	"Cookie Changed Value":
+	{
+		"en":			"Changed the value of cookie \"{0}\" to \"{1}\""
+	},
+	
+	"No Console":
+	{
+		"en":			"Cannot display settings menu to console"
+	},
+	
+	"Choose Option":
+	{
+		"en":			"Choose Option"
+	},
+
+	"Client Settings":
+	{
+		"en":			"Client Settings"
+	}
+}
