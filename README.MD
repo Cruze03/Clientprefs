@@ -65,6 +65,23 @@ public void OnExampleCommand(CCSPlayerController? caller, CommandInfo _)
     ClientprefsApi.SetPlayerCookie(caller, g_iCookieID, "xyz");
 }
 ```
+
+## Config
+```json
+{
+  "TableName": "css_cookies",
+  "TableNamePlayerData": "css_cookies_playerdata",
+  "DatabaseType": "sqlite",
+  "DatabaseHost": "",
+  "DatabaseName": "",
+  "DatabaseUsername": "",
+  "DatabasePassword": "",
+  "DatabasePort": 3306,
+  "DatabaseSslmode": "",
+  "ConfigVersion": 1
+}
+```
+
 > [!CAUTION]
 > Do not use `SetPlayerCookie` at `EventPlayerDisconnect (HookMode.Post)` event as that is when the main plugin saves cookies of a player. (Use HookMode.Pre) or when some command is executed like in example.
 
