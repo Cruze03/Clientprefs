@@ -15,24 +15,24 @@ private readonly PluginCapability<IClientprefsApi> g_PluginCapability = new("Cli
 private IClientprefsApi? ClientprefsApi;
 private int g_iCookieID = 0;
 
-public override void OnAllPluginsLoaded(bool hotReload)
-{
-    ClientprefsApi = g_PluginCapability.Get();
-
-    if (ClientprefsApi == null) return;
-
-    ClientprefsApi.HookRegisterCookie(OnClientprefDatabaseReady);
-    ClientprefsApi.HookPlayerCache(OnPlayerCookiesCached);
-}
-
 public override void Unload(bool hotReload)
 {
     base.Unload(hotReload);
 
     if (ClientprefsApi == null) return;
 
-    ClientprefsApi.UnhookRegisterCookie(OnClientprefDatabaseReady);
-    ClientprefsApi.UnhookPlayerCache(OnPlayerCookiesCached);
+    ClientprefsApi.OnDatabaseLoaded -= OnClientprefDatabaseReady;
+    ClientprefsApi.OnPlayerCookiesCached -= OnPlayerCookiesCached;
+}
+
+public override void OnAllPluginsLoaded(bool hotReload)
+{
+    ClientprefsApi = g_PluginCapability.Get();
+
+    if (ClientprefsApi == null) return;
+
+    ClientprefsApi.OnDatabaseLoaded += OnClientprefDatabaseReady;
+    ClientprefsApi.OnPlayerCookiesCached += OnPlayerCookiesCached;
 }
 
 public void OnClientprefDatabaseReady()
@@ -90,3 +90,6 @@ public void OnExampleCommand(CCSPlayerController? caller, CommandInfo _)
 ## Things left to implement
 [ ] css_settings
 
+## Changelog
+- v1.0.1
+    - Changed hook method OnClientprefDatabaseReady & OnPlayerCookiesCached. Please re-refer ClientprefsExample.

@@ -121,7 +121,7 @@ public partial class Clientprefs
                             }
 
                             // Timer so that other plugin can catch this event else this is called before AllPluginsLoaded
-                            AddTimer(2.0f, ClientprefsApi.OnDatabaseLoaded);
+                            AddTimer(2.0f, ClientprefsApi.CallOnDatabaseLoaded);
 
                             Logger.LogInformation($"{LogPrefix} Database connection established.");
                         });
@@ -218,7 +218,7 @@ public partial class Clientprefs
                             }
 
                             // Timer so that other plugin can catch this event else this is called before AllPluginsLoaded
-                            AddTimer(2.0f, ClientprefsApi.OnDatabaseLoaded);
+                            AddTimer(2.0f, ClientprefsApi.CallOnDatabaseLoaded);
 
                             Logger.LogInformation($"{LogPrefix} Database connection established.");
                         });
@@ -275,7 +275,7 @@ public partial class Clientprefs
 
                         g_PlayerSettings[steamId].Loaded = true;
 
-                        ClientprefsApi.OnPlayerCookiesCached(player);
+                        ClientprefsApi.CallOnPlayerCookiesCached(player);
                     }
                 }
                 catch (Exception ex)
@@ -313,7 +313,7 @@ public partial class Clientprefs
 
                         g_PlayerSettings[steamId].Loaded = true;
 
-                        ClientprefsApi.OnPlayerCookiesCached(player);
+                        ClientprefsApi.CallOnPlayerCookiesCached(player);
                     }
                 }
                 catch (Exception ex)

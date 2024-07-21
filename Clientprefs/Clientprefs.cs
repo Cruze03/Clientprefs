@@ -14,7 +14,7 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
     public override string ModuleName => "Clientprefs";
     public override string ModuleDescription => "Clientprefs plugin for CounterStrikeSharp";
     public override string ModuleAuthor => "Cruze";
-    public override string ModuleVersion => "1.0.0";
+    public override string ModuleVersion => "1.0.1";
 
     public class ClientPrefs
     {
@@ -64,9 +64,7 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
 
     public ClientprefsConfig Config { get; set; } = new();
     public PluginCapability<IClientprefsApi> g_PluginCapability = new("Clientprefs");
-
-    private ClientprefsApi ClientprefsApi = null!;
-
+    public required ClientprefsApi ClientprefsApi { get; set; }
     public List<ClientPrefs> g_ClientPrefs = new();
     public Dictionary<string, List<PlayerClientPrefs>> g_PlayerClientPrefs = new();
     public Dictionary<string, PlayerSettings> g_PlayerSettings = new();

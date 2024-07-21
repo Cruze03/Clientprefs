@@ -34,8 +34,8 @@ public class ClientPrefsExample : BasePlugin
 
         if (ClientprefsApi == null) return;
 
-        ClientprefsApi.UnhookRegisterCookie(OnClientprefDatabaseReady);
-        ClientprefsApi.UnhookPlayerCache(OnPlayerCookiesCached);
+        ClientprefsApi.OnDatabaseLoaded -= OnClientprefDatabaseReady;
+        ClientprefsApi.OnPlayerCookiesCached -= OnPlayerCookiesCached;
     }
 
     public override void OnAllPluginsLoaded(bool hotReload)
@@ -44,8 +44,8 @@ public class ClientPrefsExample : BasePlugin
 
         if (ClientprefsApi == null) return;
 
-        ClientprefsApi.HookRegisterCookie(OnClientprefDatabaseReady);
-        ClientprefsApi.HookPlayerCache(OnPlayerCookiesCached);
+        ClientprefsApi.OnDatabaseLoaded += OnClientprefDatabaseReady;
+        ClientprefsApi.OnPlayerCookiesCached += OnPlayerCookiesCached;
     }
 
     public void OnClientprefDatabaseReady()

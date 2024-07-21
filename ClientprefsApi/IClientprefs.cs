@@ -81,8 +81,8 @@ public interface IClientprefsApi
     /// </summary>
     public const int COOKIE_MAX_VALUE_LENGTH = 256;
 
-    public delegate void PlayerCookiesCached(CCSPlayerController player);
-    public delegate void DatabaseLoaded();
+    event Action<CCSPlayerController>? OnPlayerCookiesCached;
+    event Action? OnDatabaseLoaded;
 
     /// <summary>
     /// Creates a new player preference cookie.
@@ -123,30 +123,6 @@ public interface IClientprefsApi
     /// </summary>
     /// <param name="handler">Handler to check if player cookies are loaded.</param>
     public bool ArePlayerCookiesCached(CCSPlayerController player);
-
-    /// <summary>
-    /// Hook OnDatabaseLoaded that is called once database is loaded and new cookie is ready to be registered.
-    /// </summary>
-    /// <param name="handler">Event that is called when database is loaded.</param>
-    public void HookRegisterCookie(DatabaseLoaded hook);
-
-    /// <summary>
-    /// Unhook OnDatabaseLoaded that is called once database is loaded and new cookie is ready to be registered.
-    /// </summary>
-    /// <param name="handler">Event that is called when database is loaded.</param>
-    public void UnhookRegisterCookie(DatabaseLoaded hook);
-    
-    /// <summary>
-    /// Hook OnPlayerCookiesCached that is called once a players saved cookies have been loaded from the database.
-    /// </summary>
-    /// <param name="handler">Event that is called when players cookies are loaded.</param>
-    public void HookPlayerCache(PlayerCookiesCached hook);
-
-    /// <summary>
-    /// Unhook OnPlayerCookiesCached that is called once a players saved cookies have been loaded from the database.
-    /// </summary>
-    /// <param name="handler">Event that is called when players cookies are loaded.</param>
-    public void UnhookPlayerCache(PlayerCookiesCached hook);
 
     /// <summary>
     /// Add a new prefab item to the client cookie settings menu.

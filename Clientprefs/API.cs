@@ -81,8 +81,18 @@ public class ClientprefsApi : IClientprefsApi
         this.plugin = plugin;
     }
 
-    private List<IClientprefsApi.PlayerCookiesCached> _onPlayerCookiesCachedHooks = new();
-    private List<IClientprefsApi.DatabaseLoaded> _onDatabaseReadyHooks = new();
+    public event Action<CCSPlayerController>? OnPlayerCookiesCached;
+    public event Action? OnDatabaseLoaded;
+
+    // The event 'ClientprefsApi.OnPlayerCookiesCached' can only appear on the left hand side of += or -= (except when used from within the type 'ClientprefsApi')
+    public void CallOnDatabaseLoaded()
+    {
+        OnDatabaseLoaded?.Invoke();
+    }
+    public void CallOnPlayerCookiesCached(CCSPlayerController player)
+    {
+        OnPlayerCookiesCached?.Invoke(player);
+    }
 
     public int RegPlayerCookie(string name, string description, CookieAccess access = CookieAccess.CookieAccess_Public)
     {
@@ -208,50 +218,6 @@ public class ClientprefsApi : IClientprefsApi
         var steamId = player.SteamID.ToString();
 
         return !plugin.g_PlayerSettings.TryGetValue(steamId, out var pref) || !pref.Loaded;
-    }
-
-    public void HookPlayerCache(IClientprefsApi.PlayerCookiesCached hook)
-    {
-        _onPlayerCookiesCachedHooks.Add(hook);
-    }
-
-    public void UnhookPlayerCache(IClientprefsApi.PlayerCookiesCached hook)
-    {
-        _onPlayerCookiesCachedHooks.Remove(hook);
-    }
-
-    public void HookRegisterCookie(IClientprefsApi.DatabaseLoaded hook)
-    {
-        _onDatabaseReadyHooks.Add(hook);
-    }
-
-    public void UnhookRegisterCookie(IClientprefsApi.DatabaseLoaded hook)
-    {
-        _onDatabaseReadyHooks.Remove(hook);
-    }
-
-    public void ClearAPIHooks()
-    {
-        _onPlayerCookiesCachedHooks.Clear();
-        _onDatabaseReadyHooks.Clear();
-    }
-    
-    public void OnPlayerCookiesCached(CCSPlayerController player)
-    {
-        foreach (var hook in _onPlayerCookiesCachedHooks)
-        {
-            if(!player.IsValidPlayer()) continue;
-            
-            hook.Invoke(player);
-        }
-    }
-
-    public void OnDatabaseLoaded()
-    {
-        foreach (var hook in _onDatabaseReadyHooks)
-        {
-            hook.Invoke();
-        }
     }
 
     public void SetCookiePrefabMenu(int cookieId, CookieMenu type, string display, Action<CCSPlayerController, CookieMenuAction, string> cookieMenuHandler)
