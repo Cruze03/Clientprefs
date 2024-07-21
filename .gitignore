@@ -61,5 +61,7 @@ __MACOSX/
 # Remove dotnet normal build
 bin/
 obj/
+addons/
 *.sln
 *.txt
+*.zip
