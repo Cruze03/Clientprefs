@@ -92,4 +92,4 @@ public void OnExampleCommand(CCSPlayerController? caller, CommandInfo _)
 
 ## Changelog
 - v1.0.1
-    - Changed hook method OnClientprefDatabaseReady & OnPlayerCookiesCached. Please re-refer ClientprefsExample.
+    - Changed hook method of OnClientprefDatabaseReady & OnPlayerCookiesCached. Please re-refer ClientprefsExample.
