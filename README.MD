@@ -79,7 +79,7 @@ public void OnExampleCommand(CCSPlayerController? caller, CommandInfo _)
         return;
     }
 
-    ClientprefsApi.SetPlayerCookie(caller, g_iCookieID, "xyz");
+    ClientprefsApi.SetPlayerCookie(caller, g_iCookieID, playerCookie[player]);
 }
 ```
 
