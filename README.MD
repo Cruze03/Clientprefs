@@ -14,6 +14,7 @@ using Clientprefs.API;
 private readonly PluginCapability<IClientprefsApi> g_PluginCapability = new("Clientprefs");
 private IClientprefsApi? ClientprefsApi;
 private int g_iCookieID = 0;
+private Dictionary<CCSPlayerController, string> playerCookie = new();
 
 public override void Unload(bool hotReload)
 {
@@ -33,6 +34,17 @@ public override void OnAllPluginsLoaded(bool hotReload)
 
     ClientprefsApi.OnDatabaseLoaded += OnClientprefDatabaseReady;
     ClientprefsApi.OnPlayerCookiesCached += OnPlayerCookiesCached;
+
+    if (hotReload)
+    {
+        if (ClientprefsApi == null || g_iCookieID == -1) return;
+
+        foreach (var player in Utilities.GetPlayers().Where(p => !p.IsBot))
+        {
+            if (!ClientprefsApi.ArePlayerCookiesCached(player)) continue;
+            playerCookie[player] = ClientprefsApi.GetPlayerCookie(player, g_iCookieID);
+        }
+    }
 }
 
 public void OnClientprefDatabaseReady()
@@ -54,7 +66,7 @@ public void OnPlayerCookiesCached(CCSPlayerController player)
 {
     if (ClientprefsApi == null || g_iCookieID == -1) return;
     
-    var cookieValue = ClientprefsApi.GetPlayerCookie(player, g_iCookieID);
+    playerCookie[player] = ClientprefsApi.GetPlayerCookie(player, g_iCookieID);
 
     Logger.LogInformation($"[Clientprefs-Example] Cookie value: {cookieValue}");
 }
