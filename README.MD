@@ -91,5 +91,7 @@ public void OnExampleCommand(CCSPlayerController? caller, CommandInfo _)
 [ ] css_settings
 
 ## Changelog
+- v1.0.2
+    - Fixed dictionary errors for players after map change.
 - v1.0.1
     - Changed hook method of OnClientprefDatabaseReady & OnPlayerCookiesCached. Please re-refer ClientprefsExample.
