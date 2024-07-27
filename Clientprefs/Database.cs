@@ -242,7 +242,10 @@ public partial class Clientprefs
             return;
         }
 
-        g_PlayerClientPrefs.Add(steamId, new List<PlayerClientPrefs>());
+        if (!g_PlayerClientPrefs.ContainsKey(steamId))
+        {
+            g_PlayerClientPrefs.Add(steamId, new List<PlayerClientPrefs>());
+        }
 
         if(Config.DatabaseType == "mysql")
         {
