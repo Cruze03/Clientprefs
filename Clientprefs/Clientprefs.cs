@@ -14,7 +14,7 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
     public override string ModuleName => "Clientprefs";
     public override string ModuleDescription => "Clientprefs plugin for CounterStrikeSharp";
     public override string ModuleAuthor => "Cruze";
-    public override string ModuleVersion => "1.0.1";
+    public override string ModuleVersion => "1.0.2";
 
     public class ClientPrefs
     {
@@ -88,6 +88,11 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
 
         g_bDatabaseLoaded = false;
         Database_OnPluginLoad();
+
+        RegisterListener<Listeners.OnMapStart>((mapname)=>
+        {
+            g_PlayerClientPrefs = new();
+        });
 
         Task.Run(ConnectDatabaseTable).Wait();
     }

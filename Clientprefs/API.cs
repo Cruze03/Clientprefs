@@ -84,7 +84,8 @@ public class ClientprefsApi : IClientprefsApi
     public event Action<CCSPlayerController>? OnPlayerCookiesCached;
     public event Action? OnDatabaseLoaded;
 
-    // The event 'ClientprefsApi.OnPlayerCookiesCached' can only appear on the left hand side of += or -= (except when used from within the type 'ClientprefsApi')
+    // The event 'ClientprefsApi.OnPlayerCookiesCached' can only appear on the left hand side of +=
+	// or -= (except when used from within the type 'ClientprefsApi')
     public void CallOnDatabaseLoaded()
     {
         OnDatabaseLoaded?.Invoke();
@@ -107,7 +108,7 @@ public class ClientprefsApi : IClientprefsApi
         }
         if(description.Length > IClientprefsApi.COOKIE_MAX_DESCRIPTION_LENGTH)
         {
-            plugin.LogWarning($"RegPlayerCookie was used with to description being too long");
+            plugin.LogWarning($"RegPlayerCookie was used with description being too long");
         }
         
         if(plugin.CreatePlayerCookie(name, description, access))
@@ -139,7 +140,7 @@ public class ClientprefsApi : IClientprefsApi
 
         if(!plugin.g_PlayerSettings.TryGetValue(player.SteamID.ToString(), out var pref) || !pref.Loaded)
         {
-            throw new Exception($"GetPlayerCookie failed due to player not being loaded");
+            throw new Exception($"GetPlayerCookie failed due to player not being loaded yet. Use OnPlayerCookiesCached");
         }
         
         var steamId = player.SteamID.ToString();
@@ -170,7 +171,7 @@ public class ClientprefsApi : IClientprefsApi
 
         if(!plugin.g_PlayerSettings.TryGetValue(player.SteamID.ToString(), out var pref) || !pref.Loaded)
         {
-            throw new Exception($"GetPlayerCookie failed due to player not being loaded");
+            throw new Exception($"SetPlayerCookie failed due to player not being loaded");
         }
         
         var steamId = player.SteamID.ToString();
