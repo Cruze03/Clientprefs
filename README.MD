@@ -103,6 +103,8 @@ public void OnExampleCommand(CCSPlayerController? caller, CommandInfo _)
 [ ] css_settings
 
 ## Changelog
+- v1.0.3
+    - fix: Plugin will no longer throw "Native d01e4eb5 was invoked on a non-main thread" on playerConnect.
 - v1.0.2
     - Fixed dictionary errors for players after map change.
 - v1.0.1
