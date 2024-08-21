@@ -22,4 +22,6 @@ public class ClientprefsConfig : BasePluginConfig
     public int DatabasePort { get; set; } = 3306;
     [JsonPropertyName("DatabaseSslmode")]
 	public string DatabaseSslmode { get; set; } = "";
+    [JsonPropertyName("Debug")]
+    public bool Debug { get; set; } = false;
 }

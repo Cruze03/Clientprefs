@@ -39,7 +39,7 @@ public partial class Clientprefs
             g_ClientPrefs.Clear();
             g_iLatestClientprefID = 0;
             
-            if(Config.DatabaseType == "mysql")
+            if(Config.DatabaseType.Equals("mysql", StringComparison.OrdinalIgnoreCase))
             {
                 if(Config.DatabaseHost == "" || Config.DatabaseName == "" || Config.DatabaseUsername == "" || Config.DatabasePassword == "")
                 {
@@ -123,7 +123,7 @@ public partial class Clientprefs
                             // Timer so that other plugin can catch this event else this is called before AllPluginsLoaded
                             AddTimer(2.0f, ClientprefsApi.CallOnDatabaseLoaded);
 
-                            Logger.LogInformation($"{LogPrefix} Database connection established.");
+                            DebugLog("Database connection established.");
                         });
                     }
                     return true;
@@ -154,18 +154,6 @@ public partial class Clientprefs
 
                     using(var transaction = await connection.BeginTransactionAsync())
                     {
-                        /*
-                        using (var command = new SqliteCommand(query, connection, transaction))
-                        {
-                            await command.ExecuteNonQueryAsync();
-                        }
-
-                        using (var command = new SqliteCommand(query2, connection, transaction))
-                        {
-                            await command.ExecuteNonQueryAsync();
-                        }
-                        */
-
                         await connection.ExecuteAsync(query, connection, transaction: transaction);
                         await connection.ExecuteAsync(query2, connection, transaction: transaction);
 
@@ -220,7 +208,7 @@ public partial class Clientprefs
                             // Timer so that other plugin can catch this event else this is called before AllPluginsLoaded
                             AddTimer(2.0f, ClientprefsApi.CallOnDatabaseLoaded);
 
-                            Logger.LogInformation($"{LogPrefix} Database connection established.");
+                            DebugLog("Database connection established.");
                         });
                     }
                 }
@@ -239,12 +227,13 @@ public partial class Clientprefs
     {
         if(!g_bDatabaseLoaded)
         {
+            Logger.LogError($"{LogPrefix} GetPlayerCookies called when Database is not loaded yet.");
             return;
         }
 
         g_PlayerClientPrefs.Add(steamId, new List<PlayerClientPrefs>());
 
-        if(Config.DatabaseType == "mysql")
+        if(Config.DatabaseType.Equals("mysql", StringComparison.OrdinalIgnoreCase))
         {
             Task.Run(async () =>
             {
@@ -329,7 +318,7 @@ public partial class Clientprefs
     {
         if(!g_bDatabaseLoaded)
         {
-            Logger.LogError($"{LogPrefix}[CreatePlayerCookie] Database is not loaded yet.");
+            Logger.LogError($"{LogPrefix} CreatePlayerCookie called when Database is not loaded yet.");
             return false;
         }
         
@@ -339,7 +328,7 @@ public partial class Clientprefs
 
         bool returnVal = true;
   
-        if(Config.DatabaseType == "mysql")
+        if(Config.DatabaseType.Equals("mysql", StringComparison.OrdinalIgnoreCase))
         {
             Task.Run(async () =>
             {
@@ -391,35 +380,19 @@ public partial class Clientprefs
         return returnVal;
     }
 
-    private void SavePlayerCookies(CCSPlayerController? player = null)
+    private void SavePlayerCookies(string steamId64 = "")
     {
         if(!g_bDatabaseLoaded)
         {
+            Logger.LogError($"{LogPrefix} SavePlayerCookies called when Database is not loaded yet.");
             return;
         }
 
         List<string> aPlayers = new();
 
-        if(player != null)
+        if(string.IsNullOrEmpty(steamId64))
         {
-            var steamId = player.SteamID.ToString();
-            
-            if(!g_PlayerSettings.ContainsKey(steamId))
-            {
-                return;
-            }
-
-            if(!g_PlayerSettings[steamId].Loaded)
-            {
-                return;
-            }
-            
-            if(!g_PlayerClientPrefs.ContainsKey(steamId))
-            {
-                return;
-            }
-            
-            aPlayers.Add(steamId);
+            aPlayers.Add(steamId64);
         }
         else
         {
@@ -453,7 +426,7 @@ public partial class Clientprefs
 
         int time = GetEpochTime();
             
-        if(Config.DatabaseType == "mysql")
+        if(Config.DatabaseType.Equals("mysql", StringComparison.OrdinalIgnoreCase))
         {
             Task.Run(async () =>
             {
@@ -493,7 +466,7 @@ public partial class Clientprefs
 
                                 Server.NextWorldUpdate(() => 
                                 {
-                                    Logger.LogInformation($"{LogPrefix} Player data saved.");
+                                    DebugLog("Player data saved.");
                                     g_PlayerClientPrefs.Remove(steamId);
                                     g_PlayerSettings.Remove(steamId);
                                 });
@@ -543,7 +516,7 @@ public partial class Clientprefs
 
                                 Server.NextWorldUpdate(() => 
                                 {
-                                    Logger.LogInformation($"{LogPrefix} Player data saved.");
+                                    DebugLog("Player data saved.");
                                     g_PlayerClientPrefs.Remove(steamId);
                                     g_PlayerSettings.Remove(steamId);
                                 });

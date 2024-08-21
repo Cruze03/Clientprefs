@@ -5,6 +5,7 @@ using CounterStrikeSharp.API.Core.Attributes.Registration;
 using Clientprefs.API;
 using CounterStrikeSharp.API.Core.Capabilities;
 using CounterStrikeSharp.API.Modules.Commands;
+using Microsoft.Extensions.Logging;
 
 namespace Clientprefs;
 
@@ -203,7 +204,8 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
             return HookResult.Continue;
         }
 
-        SavePlayerCookies(player);
+        var steamId = player.SteamID.ToString();
+        AddTimer(0.5f, () => SavePlayerCookies(steamId)); // So that devs can save prefs at player disconnect safely
         return HookResult.Continue;
     }
 
@@ -217,5 +219,13 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
     private int GetEpochTime()
     {
         return (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+    }
+
+    private void DebugLog(string message)
+    {
+        if (Config.Debug)
+        {
+            Logger.LogInformation($"{LogPrefix} {message}");
+        }
     }
 }

@@ -1,9 +1,3 @@
-> [!WARNING]
-> This plugin is not heavily tested so if any issue found, please open a ticket and describe the issue as much as you can.
-
-> [!CAUTION]
-> Do not use `SetPlayerCookie` at `EventPlayerDisconnect (HookMode.Post)` event as that is when the main plugin saves cookies of a player. (Use HookMode.Pre) or when some command is executed like in example.
-
 # Clientprefs for CSSharp
 This plugin exposes some natives for developers to save player data to SQLite / MySQL without actually adding sql code to your plugin giving developers easy access to save player cookie to database.
 
@@ -95,6 +89,7 @@ public void OnExampleCommand(CCSPlayerController? caller, CommandInfo _)
   "DatabasePassword": "",
   "DatabasePort": 3306,
   "DatabaseSslmode": "",
+  "Debug": false,
   "ConfigVersion": 1
 }
 ```
@@ -105,6 +100,8 @@ public void OnExampleCommand(CCSPlayerController? caller, CommandInfo _)
 ## Changelog
 - v1.0.3
     - fix: Plugin will no longer throw "Native d01e4eb5 was invoked on a non-main thread" on playerConnect.
+    - Devs can now save clientpref for player at PlayerDisconnect(HookMode.Post) too as the plugin now saves in database after 0.5 seconds.
+    - Added more error logging and added variable in config to enable debug logs.
 - v1.0.2
     - Fixed dictionary errors for players after map change.
 - v1.0.1
