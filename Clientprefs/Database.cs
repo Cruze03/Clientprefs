@@ -275,7 +275,7 @@ public partial class Clientprefs
 
                         g_PlayerSettings[steamId].Loaded = true;
 
-                        ClientprefsApi.CallOnPlayerCookiesCached(player);
+                        Server.NextWorldUpdate(()=> ClientprefsApi.CallOnPlayerCookiesCached(player));
                     }
                 }
                 catch (Exception ex)
@@ -313,7 +313,7 @@ public partial class Clientprefs
 
                         g_PlayerSettings[steamId].Loaded = true;
 
-                        ClientprefsApi.CallOnPlayerCookiesCached(player);
+                        Server.NextWorldUpdate(()=> ClientprefsApi.CallOnPlayerCookiesCached(player));
                     }
                 }
                 catch (Exception ex)
