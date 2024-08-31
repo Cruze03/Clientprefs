@@ -231,7 +231,7 @@ public partial class Clientprefs
             return;
         }
 
-        g_PlayerClientPrefs.Add(steamId, new List<PlayerClientPrefs>());
+        g_PlayerClientPrefs[steamId] = new List<PlayerClientPrefs>();
 
         if(Config.DatabaseType.Equals("mysql", StringComparison.OrdinalIgnoreCase))
         {
