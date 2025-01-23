@@ -199,7 +199,7 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
         return HookResult.Continue;
     }
 
-    [GameEventHandler]
+    [GameEventHandler(HookMode.Pre)]
     public HookResult OnPlayerDisconnect(EventPlayerDisconnect @event, GameEventInfo _)
     {
         var player = @event.Userid;
