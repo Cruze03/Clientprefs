@@ -15,7 +15,7 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
     public override string ModuleName => "Clientprefs";
     public override string ModuleDescription => "Clientprefs plugin for CounterStrikeSharp";
     public override string ModuleAuthor => "Cruze";
-    public override string ModuleVersion => "1.0.4";
+    public override string ModuleVersion => "1.0.4-FixMapChangePrefSave";
 
     public class ClientPrefs
     {
@@ -95,12 +95,25 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
             g_PlayerClientPrefs = new();
         });
 
-        RegisterListener<Listeners.OnMapEnd>(() =>
+        /*RegisterListener<Listeners.OnMapEnd>(() =>
         {
             SavePlayerCookies();
-        });
+        });*/
 
         Task.Run(ConnectDatabaseTable).Wait();
+
+        AddCommandListener("changelevel", OnMapEnd, HookMode.Pre);
+        AddCommandListener("map", OnMapEnd, HookMode.Pre);
+        AddCommandListener("host_workshop_map", OnMapEnd, HookMode.Pre);
+        AddCommandListener("ds_workshop_changelevel", OnMapEnd, HookMode.Pre);
+    }
+
+    private HookResult OnMapEnd(CCSPlayerController? player, CommandInfo commandInfo)
+    {
+        if(string.IsNullOrEmpty(commandInfo.ArgString)) return HookResult.Continue;
+
+        SavePlayerCookies();
+        return HookResult.Continue;
     }
 
     public override void Unload(bool hotReload)
@@ -199,7 +212,7 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
         return HookResult.Continue;
     }
 
-    [GameEventHandler(HookMode.Pre)]
+    [GameEventHandler]
     public HookResult OnPlayerDisconnect(EventPlayerDisconnect @event, GameEventInfo _)
     {
         var player = @event.Userid;
@@ -210,7 +223,10 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
         }
 
         var steamId = player.SteamID.ToString();
-        AddTimer(0.5f, () => SavePlayerCookies(steamId)); // So that devs can save prefs at player disconnect safely
+        AddTimer(0.1f, () =>
+        {
+            SavePlayerCookies(steamId); // So that devs can save prefs at player disconnect safely
+        });
         return HookResult.Continue;
     }
 
