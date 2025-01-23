@@ -341,7 +341,7 @@ public partial class Clientprefs
                         var parameters = new DynamicParameters();
                         
                         parameters.Add("@name", name);
-                        parameters.Add("@value", description);
+                        parameters.Add("@description", description);
                         parameters.Add("@access", (int)access);
 
                         await connection.QueryAsync(query, parameters);
@@ -390,7 +390,7 @@ public partial class Clientprefs
 
         List<string> aPlayers = new();
 
-        if(string.IsNullOrEmpty(steamId64))
+        if(!string.IsNullOrEmpty(steamId64))
         {
             aPlayers.Add(steamId64);
         }

@@ -15,7 +15,7 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
     public override string ModuleName => "Clientprefs";
     public override string ModuleDescription => "Clientprefs plugin for CounterStrikeSharp";
     public override string ModuleAuthor => "Cruze";
-    public override string ModuleVersion => "1.0.3Fix";
+    public override string ModuleVersion => "1.0.4";
 
     public class ClientPrefs
     {
@@ -93,6 +93,11 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
         RegisterListener<Listeners.OnMapStart>((mapname)=>
         {
             g_PlayerClientPrefs = new();
+        });
+
+        RegisterListener<Listeners.OnMapEnd>(() =>
+        {
+            SavePlayerCookies();
         });
 
         Task.Run(ConnectDatabaseTable).Wait();
@@ -209,12 +214,12 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
         return HookResult.Continue;
     }
 
-    [GameEventHandler]
+    /*[GameEventHandler]
     public HookResult OnMatchEnd(EventCsWinPanelMatch _, GameEventInfo __)
     {
         SavePlayerCookies();
         return HookResult.Continue;
-    }
+    }*/
 
     private int GetEpochTime()
     {
