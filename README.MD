@@ -98,6 +98,10 @@ public void OnExampleCommand(CCSPlayerController? caller, CommandInfo _)
 [ ] css_settings
 
 ## Changelog
+- v1.0.4
+    - fix: CreatePlayerCookie native using wrong parameter name.
+    - fix: SavePlayerCookie missing not operator.
+    - fix: Player preferences not getting saved at map change.
 - v1.0.3
     - fix: Plugin will no longer throw "Native d01e4eb5 was invoked on a non-main thread" on playerConnect.
     - Devs can now save clientpref for player at PlayerDisconnect(HookMode.Post) too as the plugin now saves in database after 0.5 seconds.
