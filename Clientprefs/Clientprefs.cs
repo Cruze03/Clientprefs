@@ -184,6 +184,7 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
         command.ReplyToCommand("[CSS] " + Localizer["Cookie Changed Value", name, value]);
     }
 
+    /*
     [ConsoleCommand("css_settings", "Settings command for clientprefs")]
 	public void OnSettingsCommand(CCSPlayerController? player, CommandInfo command)
 	{
@@ -195,6 +196,7 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
         command.ReplyToCommand("[CSS] Not yet implemented");
         // ClientprefsApi.ShowCookieMenu(player);
     }
+    */
 
     [GameEventHandler]
     public HookResult OnPlayerConnectFull(EventPlayerConnectFull @event, GameEventInfo _)
