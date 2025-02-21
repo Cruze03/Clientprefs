@@ -11,11 +11,6 @@ namespace Clientprefs;
 public partial class Clientprefs
 {
     private string SQLiteDatasource = "";
-
-    private void Database_OnPluginLoad()
-    {
-        SQLiteDatasource = $"Data Source={Path.Join(ModuleDirectory, "clientprefs.db")}";
-    }
     
     private MySqlConnection CreateConnection()
     {
@@ -34,6 +29,8 @@ public partial class Clientprefs
 
     private async Task<bool> ConnectDatabaseTable()
     {
+        SQLiteDatasource = $"Data Source={Path.Join(ModuleDirectory, "clientprefs.db")}";
+
         try
         {
             g_ClientPrefs.Clear();

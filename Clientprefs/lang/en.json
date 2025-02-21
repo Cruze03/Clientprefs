@@ -1,51 +1,23 @@
-{    
-    "Cookie Usage":
-	{
-		"en":			"Usage: sm_cookies <name> [value]"
-	},
+{
+	"Prefix": "[CSS] ",
 
-    "Cookie List":
-	{
-		"en":			"CounterStrikeSharp Cookie List"
-	},
-	
-	"Printing Cookie List":
-	{
-		"en":			"Printing cookie list to console"
-	},
-	
-	"Cookie not Found":
-	{
-		"en":			"Could not find cookie \"{0}\""
-	},
-	
-	"Cookie Value":
-	{
-		"en":			"{0} ({1})'s value is {2}"
-	},
-	
-	"Protected Cookie":
-	{
-		"en":			"Cannot change the value of protected cookie \"{0}\""
-	},
-	
-	"Cookie Changed Value":
-	{
-		"en":			"Changed the value of cookie \"{0}\" to \"{1}\""
-	},
-	
-	"No Console":
-	{
-		"en":			"Cannot display settings menu to console"
-	},
-	
-	"Choose Option":
-	{
-		"en":			"Choose Option"
-	},
+	"Cookie Usage": "Usage: sm_cookies <name> [value]",
 
-	"Client Settings":
-	{
-		"en":			"Client Settings"
-	}
+	"Cookie List": "CounterStrikeSharp Cookie List",
+
+	"Printing Cookie List": "Printing cookie list to console",
+
+	"Cookie not Found": "Could not find cookie \"{0}\"",
+
+	"Cookie Value": "{0} ({1})'s value is {2}",
+
+	"Protected Cookie": "Cannot change the value of protected cookie \"{0}\"",
+
+	"Cookie Changed Value": "Changed the value of cookie \"{0}\" to \"{1}\"",
+
+	"No Console": "Cannot display settings menu to console",
+
+	"Choose Option": "Choose Option",
+
+	"Client Settings": "Client Settings"
 }

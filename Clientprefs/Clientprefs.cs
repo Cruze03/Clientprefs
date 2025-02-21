@@ -1,3 +1,4 @@
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
@@ -88,7 +89,6 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
         Capabilities.RegisterPluginCapability(g_PluginCapability, () => ClientprefsApi);
 
         g_bDatabaseLoaded = false;
-        Database_OnPluginLoad();
 
         RegisterListener<Listeners.OnMapStart>((mapname)=>
         {
@@ -100,12 +100,15 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
             SavePlayerCookies();
         });*/
 
-        Task.Run(ConnectDatabaseTable).Wait();
+        Server.NextWorldUpdate(() =>
+        {
+            Task.Run(ConnectDatabaseTable).Wait();
 
-        AddCommandListener("changelevel", OnMapEnd, HookMode.Pre);
-        AddCommandListener("map", OnMapEnd, HookMode.Pre);
-        AddCommandListener("host_workshop_map", OnMapEnd, HookMode.Pre);
-        AddCommandListener("ds_workshop_changelevel", OnMapEnd, HookMode.Pre);
+            AddCommandListener("changelevel", OnMapEnd, HookMode.Pre);
+            AddCommandListener("map", OnMapEnd, HookMode.Pre);
+            AddCommandListener("host_workshop_map", OnMapEnd, HookMode.Pre);
+            AddCommandListener("ds_workshop_changelevel", OnMapEnd, HookMode.Pre);
+        });
     }
 
     private HookResult OnMapEnd(CCSPlayerController? player, CommandInfo commandInfo)
@@ -129,13 +132,13 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
 	{
         if (command.ArgCount <= 1)
         {
-            command.ReplyToCommand("[CSS] " + Localizer["Cookie Usage"]);
-            command.ReplyToCommand("[CSS] " + Localizer["Printing Cookie List"]);
+            command.ReplyToCommand(Localizer["Prefix"] + Localizer["Cookie Usage"]);
+            command.ReplyToCommand(Localizer["Prefix"] + Localizer["Printing Cookie List"]);
 
             int count = 1;
             foreach(var pref in g_ClientPrefs)
             {
-                command.ReplyToCommand($"[CSS] [{count}] {pref.Name} {pref.Description}");
+                command.ReplyToCommand($"{Localizer["Prefix"]} [{count}] {pref.Name} {pref.Description}");
                 count++;
             }
             return;
@@ -143,7 +146,7 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
         
         if (player == null || !player.IsValid)
         {
-            command.ReplyToCommand("[CSS] " + Localizer["No Console"]);
+            command.ReplyToCommand(Localizer["Prefix"] + Localizer["No Console"]);
             return;
         }
 
@@ -153,7 +156,7 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
 
         if (cookie < 0)
         {
-            command.ReplyToCommand("[CSS] " + Localizer["Cookie not Found", name]);
+            command.ReplyToCommand(Localizer["Prefix"] + Localizer["Cookie not Found", name]);
             return;
         }
 
@@ -161,7 +164,7 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
 
         if (access == CookieAccess.CookieAccess_Private)
         {
-            command.ReplyToCommand("[CSS] " + Localizer["Cookie not Found", name]);
+            command.ReplyToCommand(Localizer["Prefix"] + Localizer["Cookie not Found", name]);
             return;
         }
 
@@ -170,31 +173,33 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
         string value = g_PlayerClientPrefs[steamId].First(p => p.Id == cookie).NewValue;
         string description = g_ClientPrefs.First(p => p.Id == cookie).Description;
 		
-        command.ReplyToCommand($"[CSS] " + Localizer["Cookie Value", name, description, value]);
+        command.ReplyToCommand(Localizer["Prefix"] + Localizer["Cookie Value", name, description, value]);
 
         if (access == CookieAccess.CookieAccess_Protected)
         {
-            command.ReplyToCommand($"[CSS] " + Localizer["Protected Cookie"]);
+            command.ReplyToCommand(Localizer["Prefix"] + Localizer["Protected Cookie"]);
             return;
         }
 
         value = command.GetArg(2);
         
         g_PlayerClientPrefs[steamId].First(p => p.Id == cookie).NewValue = value;
-        command.ReplyToCommand("[CSS] " + Localizer["Cookie Changed Value", name, value]);
+        command.ReplyToCommand(Localizer["Prefix"] + Localizer["Cookie Changed Value", name, value]);
     }
 
+    /*
     [ConsoleCommand("css_settings", "Settings command for clientprefs")]
 	public void OnSettingsCommand(CCSPlayerController? player, CommandInfo command)
 	{
         if (player == null || !player.IsValid)
         {
-            command.ReplyToCommand("[CSS] " + Localizer["No Console"]);
+            command.ReplyToCommand(Localizer["Prefix"] + Localizer["No Console"]);
             return;
         }
-        command.ReplyToCommand("[CSS] Not yet implemented");
+        command.ReplyToCommand($"{Localizer["Prefix"]} Not yet implemented");
         // ClientprefsApi.ShowCookieMenu(player);
     }
+    */
 
     [GameEventHandler]
     public HookResult OnPlayerConnectFull(EventPlayerConnectFull @event, GameEventInfo _)
