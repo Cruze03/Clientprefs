@@ -1,3 +1,4 @@
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
@@ -88,7 +89,6 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
         Capabilities.RegisterPluginCapability(g_PluginCapability, () => ClientprefsApi);
 
         g_bDatabaseLoaded = false;
-        Database_OnPluginLoad();
 
         RegisterListener<Listeners.OnMapStart>((mapname)=>
         {
@@ -100,12 +100,15 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
             SavePlayerCookies();
         });*/
 
-        Task.Run(ConnectDatabaseTable).Wait();
+        Server.NextWorldUpdate(() =>
+        {
+            Task.Run(ConnectDatabaseTable).Wait();
 
-        AddCommandListener("changelevel", OnMapEnd, HookMode.Pre);
-        AddCommandListener("map", OnMapEnd, HookMode.Pre);
-        AddCommandListener("host_workshop_map", OnMapEnd, HookMode.Pre);
-        AddCommandListener("ds_workshop_changelevel", OnMapEnd, HookMode.Pre);
+            AddCommandListener("changelevel", OnMapEnd, HookMode.Pre);
+            AddCommandListener("map", OnMapEnd, HookMode.Pre);
+            AddCommandListener("host_workshop_map", OnMapEnd, HookMode.Pre);
+            AddCommandListener("ds_workshop_changelevel", OnMapEnd, HookMode.Pre);
+        });
     }
 
     private HookResult OnMapEnd(CCSPlayerController? player, CommandInfo commandInfo)
