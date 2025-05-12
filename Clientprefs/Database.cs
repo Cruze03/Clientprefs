@@ -261,7 +261,12 @@ public partial class Clientprefs
 
                         g_PlayerSettings[steamId].Loaded = true;
 
-                        Server.NextWorldUpdate(()=> ClientprefsApi.CallOnPlayerCookiesCached(player));
+                        Server.NextWorldUpdate(()=>
+                        {
+                            if(!player.IsValidPlayer()) return;
+
+                            ClientprefsApi.CallOnPlayerCookiesCached(player);
+                        });
                     }
                 }
                 catch (Exception ex)
@@ -299,7 +304,12 @@ public partial class Clientprefs
 
                         g_PlayerSettings[steamId].Loaded = true;
 
-                        Server.NextWorldUpdate(()=> ClientprefsApi.CallOnPlayerCookiesCached(player));
+                        Server.NextWorldUpdate(()=>
+                        {
+                            if(!player.IsValidPlayer()) return;
+
+                            ClientprefsApi.CallOnPlayerCookiesCached(player);
+                        });
                     }
                 }
                 catch (Exception ex)
@@ -416,13 +426,13 @@ public partial class Clientprefs
                 {
                     continue;
                 }
-                
+
                 aPlayers.Add(steamId);
             }
         }
 
         int time = GetEpochTime();
-            
+
         if(Config.DatabaseType.Equals("mysql", StringComparison.OrdinalIgnoreCase))
         {
             Task.Run(async () =>
@@ -432,15 +442,21 @@ public partial class Clientprefs
                     using (var connection = CreateConnection())
                     {
                         await connection.OpenAsync();
-                        
+
                         string query;
 
                         var parameters = new DynamicParameters();
-                        
+
                         using (var transaction = await connection.BeginTransactionAsync())
                         {
                             foreach (var steamId in aPlayers)
                             {
+                                if(!g_PlayerClientPrefs.ContainsKey(steamId))
+                                {
+                                    g_PlayerSettings.Remove(steamId);
+                                    continue;
+                                }
+
                                 foreach (var pref in g_PlayerClientPrefs[steamId])
                                 {
                                     if(pref.OldValue == pref.NewValue) continue;
@@ -461,7 +477,7 @@ public partial class Clientprefs
                                     await connection.ExecuteAsync(query, parameters, transaction: transaction);
                                 }
 
-                                Server.NextWorldUpdate(() => 
+                                Server.NextWorldUpdate(() =>
                                 {
                                     DebugLog("Player data saved.");
                                     g_PlayerClientPrefs.Remove(steamId);
@@ -488,13 +504,19 @@ public partial class Clientprefs
                     using (var connection = new SqliteConnection(SQLiteDatasource))
                     {
                         await connection.OpenAsync();
-                        
+
                         string query;
-                        
+
                         using (var transaction = await connection.BeginTransactionAsync())
                         {
                             foreach (var steamId in aPlayers)
                             {
+                                if(!g_PlayerClientPrefs.ContainsKey(steamId))
+                                {
+                                    g_PlayerSettings.Remove(steamId);
+                                    continue;
+                                }
+
                                 foreach (var pref in g_PlayerClientPrefs[steamId])
                                 {
                                     if(pref.OldValue == pref.NewValue) continue;
