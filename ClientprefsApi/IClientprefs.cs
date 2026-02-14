@@ -91,17 +91,17 @@ public interface IClientprefsApi
     /// -1 if unable to create.
     /// </summary>
     /// <param name="handler">ID of registered player cookie.</param>
-    [Obsolete("Use RegPlayerCookie2 instead.")]
+    [Obsolete("Use RegPlayerCookieAsync instead.")]
     public int RegPlayerCookie(string name, string description, CookieAccess access = CookieAccess.CookieAccess_Public);
 
     /// <summary>
-    /// Creates a new player preference cookie.
+    /// Creates a new player preference cookie async.
     /// if a cookie with the same name or id exists,
     /// it will return the existing cookie id.
     /// -1 if unable to create.
     /// </summary>
     /// <param name="handler">ID of registered player cookie.</param>
-    public Task<int> RegPlayerCookie2(string name, string description, CookieAccess access = CookieAccess.CookieAccess_Public);
+    public Task<int> RegPlayerCookieAsync(string name, string description, CookieAccess access = CookieAccess.CookieAccess_Public);
 
     /// <summary>
     /// Returns cookieId for the given cookie name.

@@ -112,7 +112,7 @@ public class ClientprefsApi : IClientprefsApi
         }
     }
 
-    public async Task<int> RegPlayerCookie2(string name, string description, CookieAccess access = CookieAccess.CookieAccess_Public)
+    public async Task<int> RegPlayerCookieAsync(string name, string description, CookieAccess access = CookieAccess.CookieAccess_Public)
     {
         if (_plugin.ClientPrefExists(name))
         {

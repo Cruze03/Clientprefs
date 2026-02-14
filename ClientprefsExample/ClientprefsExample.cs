@@ -54,9 +54,9 @@ public class ClientPrefsExample : BasePlugin
 
         Task.Run(async () =>
         {
-            g_iCookieID = await ClientprefsApi.RegPlayerCookie2("example_cookie", "Example cookie description", CookieAccess.CookieAccess_Public);
-            g_iCookieID2 = await ClientprefsApi.RegPlayerCookie2("example_cookie2", "Example cookie description", CookieAccess.CookieAccess_Public);
-            g_iCookieID3 = await ClientprefsApi.RegPlayerCookie2("example_cookie", "Example cookie description", CookieAccess.CookieAccess_Public);
+            g_iCookieID = await ClientprefsApi.RegPlayerCookieAsync("example_cookie", "Example cookie description", CookieAccess.CookieAccess_Public);
+            g_iCookieID2 = await ClientprefsApi.RegPlayerCookieAsync("example_cookie2", "Example cookie description", CookieAccess.CookieAccess_Public);
+            g_iCookieID3 = await ClientprefsApi.RegPlayerCookieAsync("example_cookie", "Example cookie description", CookieAccess.CookieAccess_Public);
 
             if (g_iCookieID == -1)
             {

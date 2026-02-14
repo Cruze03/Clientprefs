@@ -20,8 +20,6 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
     public void OnConfigParsed(ClientprefsConfig config)
     {
         Config = config;
-
-        Logger.LogInformation($"DebugLogs => {Config.Debug}");
     }
 
     public override void Load(bool hotReload)

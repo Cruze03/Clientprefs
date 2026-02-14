@@ -47,7 +47,7 @@ public void OnClientprefDatabaseReady()
 
     Task.Run(async () =>
     {
-        g_iCookieID = ClientprefsApi.RegPlayerCookie2("example_cookie", "Example cookie description", CookieAccess.CookieAccess_Public);
+        g_iCookieID = ClientprefsApi.RegPlayerCookieAsync("example_cookie", "Example cookie description", CookieAccess.CookieAccess_Public);
 
         if(g_iCookieID == -1)
         {
