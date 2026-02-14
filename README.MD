@@ -44,22 +44,25 @@ public override void OnAllPluginsLoaded(bool hotReload)
 public void OnClientprefDatabaseReady()
 {
     if (ClientprefsApi == null) return;
-    
-    g_iCookieID = ClientprefsApi.RegPlayerCookie("example_cookie", "Example cookie description", CookieAccess.CookieAccess_Public);
 
-    if(g_iCookieID == -1)
+    Task.Run(async () =>
     {
-        Logger.LogError("[Clientprefs-Example] Failed to register/load cookie 1");
-        return;
-    }
+        g_iCookieID = ClientprefsApi.RegPlayerCookie2("example_cookie", "Example cookie description", CookieAccess.CookieAccess_Public);
 
-    Logger.LogInformation($"[Clientprefs-Example] Registered/Loaded cookie with ID: {g_iCookieID}"); // ID: 1
+        if(g_iCookieID == -1)
+        {
+            Logger.LogError("[Clientprefs-Example] Failed to register/load cookie 1");
+            return;
+        }
+
+        Logger.LogInformation($"[Clientprefs-Example] Registered/Loaded cookie with ID: {g_iCookieID}"); // ID: 1
+    });
 }
 
 public void OnPlayerCookiesCached(CCSPlayerController player)
 {
     if (ClientprefsApi == null || g_iCookieID == -1) return;
-    
+
     playerCookie[player] = ClientprefsApi.GetPlayerCookie(player, g_iCookieID);
 
     Logger.LogInformation($"[Clientprefs-Example] Cookie value: {cookieValue}");
@@ -98,6 +101,12 @@ public void OnExampleCommand(CCSPlayerController? caller, CommandInfo _)
 [ ] css_settings
 
 ## Changelog
+- v1.0.7
+    - refactor: whole codebase.
+    - fix: cases where player cookies were not getting saved.
+
+- v1.0.6
+    - fix: Exceptions on player cached & disconnect.
 - v1.0.4
     - fix: CreatePlayerCookie native using wrong parameter name.
     - fix: SavePlayerCookie missing not operator.

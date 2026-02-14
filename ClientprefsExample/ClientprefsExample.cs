@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ClientPrefsExample;
 
-[MinimumApiVersion(215)]
+[MinimumApiVersion(361)]
 public class ClientPrefsExample : BasePlugin
 {
     public override string ModuleName => "Example plugin";
@@ -51,32 +51,35 @@ public class ClientPrefsExample : BasePlugin
     public void OnClientprefDatabaseReady()
     {
         if (ClientprefsApi == null) return;
-        
-        g_iCookieID = ClientprefsApi.RegPlayerCookie("example_cookie", "Example cookie description", CookieAccess.CookieAccess_Public);
-        g_iCookieID2 = ClientprefsApi.RegPlayerCookie("example_cookie2", "Example cookie description", CookieAccess.CookieAccess_Public);
-        g_iCookieID3 = ClientprefsApi.RegPlayerCookie("example_cookie", "Example cookie description", CookieAccess.CookieAccess_Public);
 
-        if(g_iCookieID == -1)
+        Task.Run(async () =>
         {
-            Logger.LogError("[Clientprefs-Example] Failed to register/load cookie 1");
-            return;
-        }
+            g_iCookieID = await ClientprefsApi.RegPlayerCookie2("example_cookie", "Example cookie description", CookieAccess.CookieAccess_Public);
+            g_iCookieID2 = await ClientprefsApi.RegPlayerCookie2("example_cookie2", "Example cookie description", CookieAccess.CookieAccess_Public);
+            g_iCookieID3 = await ClientprefsApi.RegPlayerCookie2("example_cookie", "Example cookie description", CookieAccess.CookieAccess_Public);
 
-        if(g_iCookieID2 == -1)
-        {
-            Logger.LogError("[Clientprefs-Example] Failed to register/load cookie 2");
-            return;
-        }
+            if (g_iCookieID == -1)
+            {
+                Logger.LogError("[Clientprefs-Example] Failed to register/load cookie 1");
+                return;
+            }
 
-        Logger.LogInformation($"[Clientprefs-Example] Registered/Loaded cookie with ID: {g_iCookieID}"); // ID: 1
-        Logger.LogInformation($"[Clientprefs-Example] Registered/Loaded cookie with ID: {g_iCookieID2}"); // ID: 2
-        Logger.LogInformation($"[Clientprefs-Example] Registered/Loaded cookie with ID: {g_iCookieID3}"); // ID: 1
+            if (g_iCookieID2 == -1)
+            {
+                Logger.LogError("[Clientprefs-Example] Failed to register/load cookie 2");
+                return;
+            }
+
+            Logger.LogInformation($"[Clientprefs-Example] Registered/Loaded cookie with ID: {g_iCookieID}"); // ID: 1
+            Logger.LogInformation($"[Clientprefs-Example] Registered/Loaded cookie with ID: {g_iCookieID2}"); // ID: 2
+            Logger.LogInformation($"[Clientprefs-Example] Registered/Loaded cookie with ID: {g_iCookieID3}"); // ID: 1
+        });
     }
 
     public void OnPlayerCookiesCached(CCSPlayerController player)
     {
         if (ClientprefsApi == null || g_iCookieID == -1 || g_iCookieID2 == -1) return;
-        
+
         var cookieValue = ClientprefsApi.GetPlayerCookie(player, g_iCookieID);
         var cookieValue2 = ClientprefsApi.GetPlayerCookie(player, g_iCookieID2);
 

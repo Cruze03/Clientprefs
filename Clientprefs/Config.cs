@@ -2,6 +2,7 @@ using CounterStrikeSharp.API.Core;
 using System.Text.Json.Serialization;
 
 namespace Clientprefs;
+
 public class ClientprefsConfig : BasePluginConfig
 {
     [JsonPropertyName("TableName")]
@@ -21,7 +22,9 @@ public class ClientprefsConfig : BasePluginConfig
     [JsonPropertyName("DatabasePort")]
     public int DatabasePort { get; set; } = 3306;
     [JsonPropertyName("DatabaseSslmode")]
-	public string DatabaseSslmode { get; set; } = "";
+    public string DatabaseSslmode { get; set; } = "";
+    [JsonPropertyName("ConfigVersion")]
+    public override int Version { get; set; } = 1;
     [JsonPropertyName("Debug")]
     public bool Debug { get; set; } = false;
 }

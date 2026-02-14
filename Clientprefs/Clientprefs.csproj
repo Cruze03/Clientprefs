@@ -7,7 +7,7 @@
   </PropertyGroup>
 
  <ItemGroup>
-    <PackageReference Include="CounterStrikeSharp.API" Version="1.0.333">
+    <PackageReference Include="CounterStrikeSharp.API" Version="1.0.361">
       <PrivateAssets>none</PrivateAssets>
       <ExcludeAssets>runtime</ExcludeAssets>
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -16,12 +16,10 @@
     <PackageReference Include="MySqlConnector" Version="*" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="*" />
     <PackageReference Include="Dapper" Version="*" />
-    <Reference Include="SharedApi">
-      <HintPath>../ClientprefsApi/ClientprefsApi.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\ClientprefsApi\ClientprefsApi.csproj" />
 
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Update="lang\**\*.*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

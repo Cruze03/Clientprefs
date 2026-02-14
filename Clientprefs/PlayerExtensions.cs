@@ -2,6 +2,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 
 namespace Clientprefs;
+
 internal static class CCSPlayerControllerEx
 {
     internal static bool IsValidPlayer(this CCSPlayerController? controller)
