@@ -5,10 +5,10 @@ This plugin exposes some natives for developers to save player data to SQLite / 
 ```c#
 using Clientprefs.API;
 
-private readonly PluginCapability<IClientprefsApi> g_PluginCapability = new("Clientprefs");
+private readonly PluginCapability<IClientprefsApi> PluginCapability = new("Clientprefs");
 private IClientprefsApi? ClientprefsApi;
-private int g_iCookieID = 0;
-private Dictionary<CCSPlayerController, string> playerCookie = new();
+private int CookieID = 0;
+private Dictionary<CCSPlayerController, string> PlayerCookie = new();
 
 public override void Unload(bool hotReload)
 {
@@ -22,7 +22,7 @@ public override void Unload(bool hotReload)
 
 public override void OnAllPluginsLoaded(bool hotReload)
 {
-    ClientprefsApi = g_PluginCapability.Get();
+    ClientprefsApi = PluginCapability.Get();
 
     if (ClientprefsApi == null) return;
 
@@ -31,12 +31,12 @@ public override void OnAllPluginsLoaded(bool hotReload)
 
     if (hotReload)
     {
-        if (ClientprefsApi == null || g_iCookieID == -1) return;
+        if (ClientprefsApi == null || CookieID == -1) return;
 
         foreach (var player in Utilities.GetPlayers().Where(p => !p.IsBot))
         {
             if (!ClientprefsApi.ArePlayerCookiesCached(player)) continue;
-            playerCookie[player] = ClientprefsApi.GetPlayerCookie(player, g_iCookieID);
+            PlayerCookie[player] = ClientprefsApi.GetPlayerCookie(player, CookieID);
         }
     }
 }
@@ -47,23 +47,23 @@ public void OnClientprefDatabaseReady()
 
     Task.Run(async () =>
     {
-        g_iCookieID = ClientprefsApi.RegPlayerCookieAsync("example_cookie", "Example cookie description", CookieAccess.CookieAccess_Public);
+        CookieID = ClientprefsApi.RegPlayerCookieAsync("example_cookie", "Example cookie description", CookieAccess.CookieAccess_Public);
 
-        if(g_iCookieID == -1)
+        if(CookieID == -1)
         {
             Logger.LogError("[Clientprefs-Example] Failed to register/load cookie 1");
             return;
         }
 
-        Logger.LogInformation($"[Clientprefs-Example] Registered/Loaded cookie with ID: {g_iCookieID}"); // ID: 1
+        Logger.LogInformation($"[Clientprefs-Example] Registered/Loaded cookie with ID: {CookieID}"); // ID: 1
     });
 }
 
 public void OnPlayerCookiesCached(CCSPlayerController player)
 {
-    if (ClientprefsApi == null || g_iCookieID == -1) return;
+    if (ClientprefsApi == null || CookieID == -1) return;
 
-    playerCookie[player] = ClientprefsApi.GetPlayerCookie(player, g_iCookieID);
+    PlayerCookie[player] = ClientprefsApi.GetPlayerCookie(player, CookieID);
 
     Logger.LogInformation($"[Clientprefs-Example] Cookie value: {cookieValue}");
 }
@@ -71,12 +71,12 @@ public void OnPlayerCookiesCached(CCSPlayerController player)
 [ConsoleCommand("css_clientprefs_example", "Saves example clientprefs cookie value")]
 public void OnExampleCommand(CCSPlayerController? caller, CommandInfo _)
 {
-    if (caller == null || !caller.IsValid || ClientprefsApi == null || g_iCookieID == -1)
+    if (caller == null || !caller.IsValid || ClientprefsApi == null || CookieID == -1)
     {
         return;
     }
 
-    ClientprefsApi.SetPlayerCookie(caller, g_iCookieID, playerCookie[player]);
+    ClientprefsApi.SetPlayerCookie(caller, CookieID, PlayerCookie[player]);
 }
 ```
 

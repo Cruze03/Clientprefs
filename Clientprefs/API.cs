@@ -121,11 +121,11 @@ public class ClientprefsApi : IClientprefsApi
 
         if (name.Length > IClientprefsApi.COOKIE_MAX_NAME_LENGTH)
         {
-            _plugin.LogWarning($"RegPlayerCookie2 was used with name being too long");
+            _plugin.LogWarning($"RegPlayerCookieAsync was used with name being too long");
         }
         if (description.Length > IClientprefsApi.COOKIE_MAX_DESCRIPTION_LENGTH)
         {
-            _plugin.LogWarning($"RegPlayerCookie2 was used with description being too long");
+            _plugin.LogWarning($"RegPlayerCookieAsync was used with description being too long");
         }
 
         bool success = await _plugin.CreatePlayerCookieNew(name, description, access);
