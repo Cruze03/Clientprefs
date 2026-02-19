@@ -1,555 +1,380 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+
 using Dapper;
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
+using System.Data.Common;
 using Microsoft.Data.Sqlite;
+
 
 using Clientprefs.API;
 
 namespace Clientprefs;
+
 public partial class Clientprefs
 {
-    private string SQLiteDatasource = "";
-    
-    private MySqlConnection CreateConnection()
-    {
-        MySqlConnectionStringBuilder builder = new MySqlConnectionStringBuilder
-        {
-            Server = Config.DatabaseHost,
-            UserID = Config.DatabaseUsername,
-            Password = Config.DatabasePassword,
-            Database = Config.DatabaseName,
-            Port = (uint)Config.DatabasePort,
-            SslMode = Enum.Parse<MySqlSslMode>(Config.DatabaseSslmode, true),
-            AllowUserVariables=true,
-        };
-        return new MySqlConnection(builder.ToString());
-    }
+	private bool IsMySQL()
+	{
+		return Config.DatabaseType.Equals("mysql", StringComparison.OrdinalIgnoreCase);
+	}
 
-    private async Task<bool> ConnectDatabaseTable()
-    {
-        SQLiteDatasource = $"Data Source={Path.Join(ModuleDirectory, "clientprefs.db")}";
+	private DbConnection CreateConnection()
+	{
+		if (IsMySQL())
+		{
+			MySqlConnectionStringBuilder builder = new MySqlConnectionStringBuilder
+			{
+				Server = Config.DatabaseHost,
+				UserID = Config.DatabaseUsername,
+				Password = Config.DatabasePassword,
+				Database = Config.DatabaseName,
+				Port = (uint)Config.DatabasePort,
+				SslMode = Enum.Parse<MySqlSslMode>(Config.DatabaseSslmode, true),
+				AllowUserVariables = true,
+			};
+			return new MySqlConnection(builder.ToString());
+		}
+		return new SqliteConnection($"Data Source={Path.Join(ModuleDirectory, "clientprefs.db")}");
+	}
 
-        try
-        {
-            g_ClientPrefs.Clear();
-            g_iLatestClientprefID = 0;
-            
-            if(Config.DatabaseType.Equals("mysql", StringComparison.OrdinalIgnoreCase))
-            {
-                if(Config.DatabaseHost == "" || Config.DatabaseName == "" || Config.DatabaseUsername == "" || Config.DatabasePassword == "")
-                {
-                    Logger.LogError($"{LogPrefix} Database connection information is missing. Please fill in the information in the config file.");
-                    return false;
-                }
-                
-                using (var connection = CreateConnection())
-                {
-                    await connection.OpenAsync();
-                    
-                    string query = @$"CREATE TABLE IF NOT EXISTS {Config.TableName}
-                    (
-                        id INTEGER unsigned NOT NULL auto_increment,
-                        name varchar({IClientprefsApi.COOKIE_MAX_NAME_LENGTH}) NOT NULL UNIQUE,
-                        description varchar({IClientprefsApi.COOKIE_MAX_DESCRIPTION_LENGTH}),
-                        access INTEGER,
-                        PRIMARY KEY (id)
-                    )";
+	private async Task<bool> ConnectDatabaseTable()
+	{
+		try
+		{
+			Cookies.Clear();
+			LatestClientprefID = 0;
 
-                    string query2 = @$"CREATE TABLE IF NOT EXISTS {Config.TableNamePlayerData}
-                    (
-                        steamid varchar(32) NOT NULL,
-                        cookie_id int(10) NOT NULL,
-                        value varchar({IClientprefsApi.COOKIE_MAX_VALUE_LENGTH}),
-                        timestamp int NOT NULL,
-                        PRIMARY KEY (steamid, cookie_id)
-                    )";
-                    
-                    using (var transaction = await connection.BeginTransactionAsync())
-                    {
-                        await connection.ExecuteAsync(query, transaction: transaction);
-                        await connection.ExecuteAsync(query2, transaction: transaction);
+			string cookiequery = @$"CREATE TABLE IF NOT EXISTS {Config.TableName}
+            (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name varchar({IClientprefsApi.COOKIE_MAX_NAME_LENGTH}) NOT NULL UNIQUE,
+                description varchar({IClientprefsApi.COOKIE_MAX_DESCRIPTION_LENGTH}),
+                access INTEGER
+            )";
+			string playerquery = @$"CREATE TABLE IF NOT EXISTS {Config.TableNamePlayerData}
+            (
+                steamid varchar(65) NOT NULL,
+                cookie_id int(10) NOT NULL,
+                value varchar({IClientprefsApi.COOKIE_MAX_VALUE_LENGTH}),
+                timestamp int,
+                PRIMARY KEY (steamid, cookie_id)
+            )";
 
-                        await transaction.CommitAsync();
+			if (IsMySQL())
+			{
+				if (Config.DatabaseHost == "" || Config.DatabaseName == "" || Config.DatabaseUsername == "" || Config.DatabasePassword == "")
+				{
+					Logger.LogError($"Database connection information is missing. Please fill in the information in the config file.");
+					return false;
+				}
 
-                        query = @$"SELECT * FROM {Config.TableName}";
-
-                        var rows = await connection.QueryAsync(query);
-
-                        foreach (var row in rows)
-                        {
-                            if(g_ClientPrefs.Any(p => p.Id == (int)row.id || p.Name == row.name)) continue;
-                            
-                            if((int)row.id > g_iLatestClientprefID)
-                            {
-                                g_iLatestClientprefID = (int)row.id;
-                            }
-                            
-                            g_ClientPrefs.Add(
-                                new ClientPrefs
-                                {
-                                    Id = (int)row.id,
-                                    Name = row.name,
-                                    Description = row.description,
-                                    Access = (CookieAccess)row.access,
-                                }
-                            );
-                        }
-
-                        g_bDatabaseLoaded = true;
-
-                        if(g_iLatestClientprefID > 0)
-                            g_iLatestClientprefID++;
-
-                        Server.NextWorldUpdate(()=>
-                        {
-                            foreach(var p in Utilities.GetPlayers())
-                            {
-                                if(p == null || !p.IsValidPlayer())
-                                {
-                                    continue;
-                                }
-                                
-                                var steamId = p.SteamID.ToString();
-                                g_PlayerSettings[steamId] = new();
-                                g_PlayerClientPrefs.Remove(steamId);
-                                GetPlayerCookies(p, steamId);
-                            }
-
-                            // Timer so that other plugin can catch this event else this is called before AllPluginsLoaded
-                            AddTimer(2.0f, ClientprefsApi.CallOnDatabaseLoaded);
-
-                            DebugLog("Database connection established.");
-                        });
-                    }
-                    return true;
-                }
-            }
-            else
-            {
-                string query = @$"CREATE TABLE IF NOT EXISTS {Config.TableName}
+				cookiequery = @$"CREATE TABLE IF NOT EXISTS {Config.TableName}
                 (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id INTEGER unsigned NOT NULL auto_increment,
                     name varchar({IClientprefsApi.COOKIE_MAX_NAME_LENGTH}) NOT NULL UNIQUE,
                     description varchar({IClientprefsApi.COOKIE_MAX_DESCRIPTION_LENGTH}),
-                    access INTEGER
+                    access INTEGER,
+                    PRIMARY KEY (id)
                 )";
 
-                string query2 = @$"CREATE TABLE IF NOT EXISTS {Config.TableNamePlayerData}
+				playerquery = @$"CREATE TABLE IF NOT EXISTS {Config.TableNamePlayerData}
                 (
-                    steamid varchar(65) NOT NULL,
+                    steamid varchar(32) NOT NULL,
                     cookie_id int(10) NOT NULL,
                     value varchar({IClientprefsApi.COOKIE_MAX_VALUE_LENGTH}),
-                    timestamp int,
+                    timestamp int NOT NULL,
                     PRIMARY KEY (steamid, cookie_id)
                 )";
+			}
 
-                using (var connection = new SqliteConnection(SQLiteDatasource))
-                {
-                    await connection.OpenAsync();
+			using (var connection = CreateConnection())
+			{
+				await connection.OpenAsync();
 
-                    using(var transaction = await connection.BeginTransactionAsync())
-                    {
-                        await connection.ExecuteAsync(query, connection, transaction: transaction);
-                        await connection.ExecuteAsync(query2, connection, transaction: transaction);
+				using (var transaction = await connection.BeginTransactionAsync())
+				{
+					await connection.ExecuteAsync(cookiequery, transaction: transaction);
+					await connection.ExecuteAsync(playerquery, transaction: transaction);
 
-                        await transaction.CommitAsync();
+					await transaction.CommitAsync();
 
-                        query = @$"SELECT * FROM {Config.TableName}";
+					cookiequery = @$"SELECT * FROM {Config.TableName}";
 
-                        var rows = await connection.QueryAsync(query);
+					var rows = await connection.QueryAsync(cookiequery);
 
-                        g_iLatestClientprefID = 0;
+					foreach (var row in rows)
+					{
+						if (Cookies.Any(p => p.Id == (int)row.id || p.Name == row.name)) continue;
 
-                        foreach (var row in rows)
-                        {
-                            if(g_ClientPrefs.Any(p => p.Id == (int)row.id || p.Name == row.name)) continue;
-                            
-                            if((int)row.id > g_iLatestClientprefID)
-                            {
-                                g_iLatestClientprefID = (int)row.id;
-                            }
-                            
-                            g_ClientPrefs.Add(
-                                new ClientPrefs
-                                {
-                                    Id = (int)row.id,
-                                    Name = row.name,
-                                    Description = row.description,
-                                    Access = (CookieAccess)row.access,
-                                }
-                            );
-                        }
-                        
-                        g_bDatabaseLoaded = true;
+						if ((int)row.id > LatestClientprefID)
+						{
+							LatestClientprefID = (int)row.id;
+						}
 
-                        if(g_iLatestClientprefID > 0)
-                            g_iLatestClientprefID++;
-                        
-                        Server.NextWorldUpdate(()=>
-                        {
-                            foreach(var p in Utilities.GetPlayers())
-                            {
-                                if(p == null || !p.IsValidPlayer())
-                                {
-                                    continue;
-                                }
-                                
-                                var steamId = p.SteamID.ToString();
-                                g_PlayerSettings[steamId] = new();
-                                g_PlayerClientPrefs.Remove(steamId);
-                                GetPlayerCookies(p, steamId);
-                            }
+						Cookies.Add(
+							new Cookie
+							{
+								Id = (int)row.id,
+								Name = row.name,
+								Description = row.description,
+								Access = (CookieAccess)row.access,
+							}
+						);
+					}
 
-                            // Timer so that other plugin can catch this event else this is called before AllPluginsLoaded
-                            AddTimer(2.0f, ClientprefsApi.CallOnDatabaseLoaded);
+					_databaseLoaded = true;
 
-                            DebugLog("Database connection established.");
-                        });
-                    }
-                }
+					if (LatestClientprefID > 0)
+						LatestClientprefID++;
 
-                return true;
-            }
-        }
-        catch (Exception ex)
-        {
-            Server.NextWorldUpdate(() => Logger.LogError($"{LogPrefix} Unable to connect to database: {ex.Message}"));
-            throw;
-        }
-    }
+					Server.NextWorldUpdate(() =>
+					{
+						foreach (var p in Utilities.GetPlayers())
+						{
+							if (p == null || !p.IsValidPlayer())
+							{
+								continue;
+							}
 
-    private void GetPlayerCookies(CCSPlayerController player, string steamId)
-    {
-        if(!g_bDatabaseLoaded)
-        {
-            Logger.LogError($"{LogPrefix} GetPlayerCookies called when Database is not loaded yet.");
-            return;
-        }
+							var steamId = p.SteamID.ToString();
+							GetPlayerCookies(p, steamId);
+						}
 
-        g_PlayerClientPrefs[steamId] = new List<PlayerClientPrefs>();
+						// Timer so that other plugin can catch this event else this is called before AllPluginsLoaded
+						AddTimer(2.0f, ClientprefsApi.CallOnDatabaseLoaded);
 
-        if(Config.DatabaseType.Equals("mysql", StringComparison.OrdinalIgnoreCase))
-        {
-            Task.Run(async () =>
-            {
-                try
-                {   
-                    using (var connection = CreateConnection())
-                    {
-                        await connection.OpenAsync();
-                        
-                        string query = $"SELECT * FROM {Config.TableNamePlayerData} WHERE steamid = @steam";
+						DebugLog("Database connection established.");
+					});
+				}
+				return true;
+			}
+		}
+		catch (Exception ex)
+		{
+			Server.NextWorldUpdate(() => Logger.LogError($"Unable to connect to database: {ex.Message}"));
+			return false;
+		}
+	}
 
-                        var parameters = new DynamicParameters();
-                        parameters.Add("@steam", steamId);
-                        
-                        var rows = await connection.QueryAsync(query, parameters);
-                        
-                        foreach (var row in rows)
-                        {
-                            g_PlayerClientPrefs[steamId].Add(
-                                new PlayerClientPrefs
-                                {
-                                    Id = (int)row.cookie_id,
-                                    OldValue = row.value,
-                                    NewValue = row.value,
-                                }
-                            );
-                        }
+	private void GetPlayerCookies(CCSPlayerController player, string steamId)
+	{
+		if (!_databaseLoaded)
+		{
+			Logger.LogError($"GetPlayerCookies called when Database is not loaded yet.");
+			return;
+		}
 
-                        g_PlayerSettings[steamId].Loaded = true;
+		if (!PlayerSettings.ContainsKey(steamId))
+		{
+			PlayerSettings.Add(steamId, new());
+		}
 
-                        Server.NextWorldUpdate(()=>
-                        {
-                            if(!player.IsValidPlayer()) return;
+		Task.Run(async () =>
+		{
+			try
+			{
+				using (var connection = CreateConnection())
+				{
+					await connection.OpenAsync();
 
-                            ClientprefsApi.CallOnPlayerCookiesCached(player);
-                        });
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Server.NextWorldUpdate(() => Logger.LogError($"{LogPrefix} An error occurred while fetching player preferences: {ex.Message}"));
-                    throw;
-                }
-            });
-        }
-        else
-        {
-            Task.Run(async () =>
-            {
-                try
-                {    
-                    using (var connection = new SqliteConnection(SQLiteDatasource))
-                    {
-                        await connection.OpenAsync();
-                        
-                        string query = $"SELECT * FROM {Config.TableNamePlayerData} WHERE steamid = @steam";
-                        
-                        var rows = await connection.QueryAsync(query, new { steam = steamId });
-                        
-                        foreach (var row in rows)
-                        {
-                            g_PlayerClientPrefs[steamId].Add(
-                                new PlayerClientPrefs
-                                {
-                                    Id = (int)row.cookie_id,
-                                    OldValue = row.value,
-                                    NewValue = row.value,
-                                }
-                            );
-                        }
+					string query = $"SELECT * FROM {Config.TableNamePlayerData} WHERE steamid = @steam";
 
-                        g_PlayerSettings[steamId].Loaded = true;
+					var rows = await connection.QueryAsync(query, new { steam = steamId });
 
-                        Server.NextWorldUpdate(()=>
-                        {
-                            if(!player.IsValidPlayer()) return;
+					foreach (var row in rows)
+					{
+						PlayerSettings[steamId].ModifyCookie((int)row.cookie_id, row.value, row.value);
+					}
 
-                            ClientprefsApi.CallOnPlayerCookiesCached(player);
-                        });
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Server.NextWorldUpdate(() => Logger.LogError($"{LogPrefix} An error occurred while fetching player preferences: {ex.Message}"));
-                    throw;
-                }
-            });
-        }
-    }
+					PlayerSettings[steamId].Loaded = true;
 
-    public bool CreatePlayerCookie(string name, string description, CookieAccess access)
-    {
-        if(!g_bDatabaseLoaded)
-        {
-            Logger.LogError($"{LogPrefix} CreatePlayerCookie called when Database is not loaded yet.");
-            return false;
-        }
-        
-        string query = @$"REPLACE INTO `{Config.TableName}`
+					DebugLog($"Cookies for {steamId} loaded: {PlayerSettings[steamId].CookieCount}");
+
+					Server.NextWorldUpdate(() =>
+					{
+						if (!player.IsValidPlayer()) return;
+
+						ClientprefsApi.CallOnPlayerCookiesCached(player);
+					});
+				}
+			}
+			catch (Exception ex)
+			{
+				Server.NextWorldUpdate(() => Logger.LogError($"An error occurred while fetching player preferences: {ex.Message}"));
+			}
+		});
+	}
+
+	public bool CreatePlayerCookie(string name, string description, CookieAccess access)
+	{
+		if (!_databaseLoaded)
+		{
+			Logger.LogError($"CreatePlayerCookie called when Database is not loaded yet.");
+			return false;
+		}
+
+		string query = @$"REPLACE INTO `{Config.TableName}`
             (name, description, access)
             VALUES (@name, @description, @access);";
 
-        bool returnVal = true;
-  
-        if(Config.DatabaseType.Equals("mysql", StringComparison.OrdinalIgnoreCase))
-        {
-            Task.Run(async () =>
-            {
-                try
-                {
-                    using (var connection = CreateConnection())
-                    {
-                        await connection.OpenAsync();
+		Task.Run(async () =>
+		{
+			try
+			{
+				using (var connection = CreateConnection())
+				{
+					await connection.OpenAsync();
 
-                        var parameters = new DynamicParameters();
-                        
-                        parameters.Add("@name", name);
-                        parameters.Add("@description", description);
-                        parameters.Add("@access", (int)access);
+					await connection.QueryAsync(query, new { name, description, access = (int)access });
 
-                        await connection.QueryAsync(query, parameters);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Server.NextWorldUpdate(() => Logger.LogError($"{LogPrefix} An error occurred while creating a player cookie: {ex.Message}"));
-                    returnVal = false;
-                    throw;
-                }
-            });
-        }
-        else
-        {
-            Task.Run(async () =>
-            {
-                try
-                {
-                    using (var connection = new SqliteConnection(SQLiteDatasource))
-                    {
-                        await connection.OpenAsync();
+					DebugLog($"Created playercookie with name {name}");
+				}
+			}
+			catch (Exception ex)
+			{
+				Server.NextWorldUpdate(() => Logger.LogError($"An error occurred while creating a player cookie: {ex.Message}"));
+				return;
+			}
+		});
+		return true;
+	}
 
-                        await connection.ExecuteAsync(query,
-                            new { name, description, access = (int)access });
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Server.NextWorldUpdate(() => Logger.LogError($"{LogPrefix} An error occurred while creating a player cookie: {ex.Message}"));
-                    returnVal = false;
-                    throw;
-                }
-            });
-        }
-        return returnVal;
-    }
+	public async Task<bool> CreatePlayerCookieNew(string name, string description, CookieAccess access)
+	{
+		if (!_databaseLoaded)
+		{
+			Logger.LogError($"CreatePlayerCookieNew called when Database is not loaded yet.");
+			return false;
+		}
 
-    private void SavePlayerCookies(string steamId64 = "")
-    {
-        if(!g_bDatabaseLoaded)
-        {
-            Logger.LogError($"{LogPrefix} SavePlayerCookies called when Database is not loaded yet.");
-            return;
-        }
+		string query = @$"REPLACE INTO `{Config.TableName}`
+            (name, description, access)
+            VALUES (@name, @description, @access);";
 
-        List<string> aPlayers = new();
+		try
+		{
+			using (var connection = CreateConnection())
+			{
+				await connection.OpenAsync();
 
-        if(!string.IsNullOrEmpty(steamId64))
-        {
-            aPlayers.Add(steamId64);
-        }
-        else
-        {
-            foreach(var p in Utilities.GetPlayers())
-            {
-                if(p == null || !p.IsValidPlayer())
-                {
-                    continue;
-                }
-                
-                var steamId = p.SteamID.ToString();
-                
-                if(!g_PlayerSettings.ContainsKey(steamId))
-                {
-                    continue;
-                }
+				await connection.QueryAsync(query, new { name, description, access = (int)access });
 
-                if(!g_PlayerSettings[steamId].Loaded)
-                {
-                    continue;
-                }
-                
-                if(!g_PlayerClientPrefs.ContainsKey(steamId))
-                {
-                    continue;
-                }
+				DebugLog($"Created playercookienew with name {name}");
+			}
+		}
+		catch (Exception ex)
+		{
+			Server.NextWorldUpdate(() => Logger.LogError($"An error occurred while creating a player cookie new: {ex.Message}"));
+			return false;
+		}
+		return true;
+	}
 
-                aPlayers.Add(steamId);
-            }
-        }
+	private void SavePlayerCookies(string steamId64 = "")
+	{
+		if (!_databaseLoaded)
+		{
+			Logger.LogError($"SavePlayerCookies called when Database is not loaded yet.");
+			return;
+		}
 
-        int time = GetEpochTime();
+		var aPlayers = new Dictionary<string, List<ClientCookie>>();
 
-        if(Config.DatabaseType.Equals("mysql", StringComparison.OrdinalIgnoreCase))
-        {
-            Task.Run(async () =>
-            {
-                try
-                {
-                    using (var connection = CreateConnection())
-                    {
-                        await connection.OpenAsync();
+		if (!string.IsNullOrEmpty(steamId64))
+		{
+			if (!PlayerSettings.ContainsKey(steamId64))
+			{
+				return;
+			}
 
-                        string query;
+			if (!PlayerSettings[steamId64].Loaded)
+			{
+				return;
+			}
 
-                        var parameters = new DynamicParameters();
+			aPlayers.Add(steamId64, [.. PlayerSettings[steamId64].Cookies]);
+			PlayerSettings.Remove(steamId64);
+		}
+		else
+		{
+			foreach (var pair in PlayerSettings)
+			{
+				var steamId = pair.Key;
+				var value = pair.Value;
 
-                        using (var transaction = await connection.BeginTransactionAsync())
-                        {
-                            foreach (var steamId in aPlayers)
-                            {
-                                if(!g_PlayerClientPrefs.ContainsKey(steamId))
-                                {
-                                    g_PlayerSettings.Remove(steamId);
-                                    continue;
-                                }
+				if (!value.Loaded)
+				{
+					continue;
+				}
 
-                                foreach (var pref in g_PlayerClientPrefs[steamId])
-                                {
-                                    if(pref.OldValue == pref.NewValue) continue;
+				aPlayers.Add(steamId, [.. value.Cookies]);
+				PlayerSettings.Remove(steamId);
+			}
+		}
 
-                                    var p = g_ClientPrefs.Where(p => p.Id == pref.Id).FirstOrDefault();
-                                    if(p == null) continue;
+		if (aPlayers.Count == 0) return;
 
-                                    query = @$"REPLACE INTO `{Config.TableNamePlayerData}`
-                                    (steamid, cookie_id, value, timestamp)
-                                    VALUES (@steam, @id, @value, @timestamp);";
+		int time = GetEpochTime();
 
-                                    parameters = new DynamicParameters();
-                                    parameters.Add("@steam", steamId);
-                                    parameters.Add("@id", pref.Id);
-                                    parameters.Add("@value", pref.NewValue);
-                                    parameters.Add("@timestamp", time);
+		Task.Run(async () =>
+		{
+			try
+			{
+				using (var connection = CreateConnection())
+				{
+					await connection.OpenAsync();
 
-                                    await connection.ExecuteAsync(query, parameters, transaction: transaction);
-                                }
+					string query;
 
-                                Server.NextWorldUpdate(() =>
-                                {
-                                    DebugLog("Player data saved.");
-                                    g_PlayerClientPrefs.Remove(steamId);
-                                    g_PlayerSettings.Remove(steamId);
-                                });
-                            }
-                            await transaction.CommitAsync();
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Server.NextWorldUpdate(() => Logger.LogError($"{LogPrefix} An error occurred while saving player(s) data: {ex.Message}"));
-                    throw;
-                }
-            });
-        }
-        else
-        {
-            Task.Run(async () =>
-            {
-                try
-                {
-                    using (var connection = new SqliteConnection(SQLiteDatasource))
-                    {
-                        await connection.OpenAsync();
+					using (var transaction = await connection.BeginTransactionAsync())
+					{
+						foreach (var pair in aPlayers)
+						{
+							var steamId = pair.Key;
+							var cookies = pair.Value;
 
-                        string query;
+							foreach (var pref in cookies)
+							{
+								var isNewValueNull = string.IsNullOrWhiteSpace(pref.NewValue);
 
-                        using (var transaction = await connection.BeginTransactionAsync())
-                        {
-                            foreach (var steamId in aPlayers)
-                            {
-                                if(!g_PlayerClientPrefs.ContainsKey(steamId))
-                                {
-                                    g_PlayerSettings.Remove(steamId);
-                                    continue;
-                                }
+								if (pref.OldValue == pref.NewValue && !isNewValueNull) continue;
 
-                                foreach (var pref in g_PlayerClientPrefs[steamId])
-                                {
-                                    if(pref.OldValue == pref.NewValue) continue;
+								var p = Cookies.FirstOrDefault(p => p.Id == pref.Id);
+								if (p == null) continue;
 
-                                    var p = g_ClientPrefs.Where(p => p.Id == pref.Id).FirstOrDefault();
-                                    if(p == null) continue;
+								if (isNewValueNull)
+								{
+									query = @$"DELETE FROM `{Config.TableNamePlayerData}`
+									WHERE steamid = @steam AND cookie_id = @id;";
 
-                                    query = @$"REPLACE INTO `{Config.TableNamePlayerData}`
-                                    (steamid, cookie_id, value, timestamp)
-                                    VALUES (@steam, @id, @value, @timestamp);";
+									await connection.ExecuteAsync(query,
+									new { steam = steamId, id = pref.Id },
+									transaction: transaction);
+									DebugLog($"Saving cookies {pref.Id} for {steamId}");
+									continue;
+								}
 
-                                    await connection.ExecuteAsync(query,
-                                    new { steam=steamId, id=pref.Id, value=pref.NewValue, timestamp=time },
-                                    transaction: transaction);
-                                }
+								query = @$"REPLACE INTO `{Config.TableNamePlayerData}`
+                                (steamid, cookie_id, value, timestamp)
+                                VALUES (@steam, @id, @value, @timestamp);";
 
-                                Server.NextWorldUpdate(() => 
-                                {
-                                    DebugLog("Player data saved.");
-                                    g_PlayerClientPrefs.Remove(steamId);
-                                    g_PlayerSettings.Remove(steamId);
-                                });
-                            }
-                            await transaction.CommitAsync();
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Server.NextWorldUpdate(() => Logger.LogError($"{LogPrefix} An error occurred while saving player(s) data: {ex.Message}"));
-                    throw;
-                }
-            });
-        }
-    }
+								await connection.ExecuteAsync(query,
+								new { steam = steamId, id = pref.Id, value = pref.NewValue, timestamp = time },
+								transaction: transaction);
+								DebugLog($"Saving cookies {pref.Id} for {steamId}");
+							}
+						}
+						await transaction.CommitAsync();
+						DebugLog($"Saved cookies");
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Server.NextWorldUpdate(() => Logger.LogError($"An error occurred while saving player(s) data: {ex.Message}"));
+				throw;
+			}
+		});
+	}
 }

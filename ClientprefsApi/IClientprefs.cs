@@ -91,7 +91,17 @@ public interface IClientprefsApi
     /// -1 if unable to create.
     /// </summary>
     /// <param name="handler">ID of registered player cookie.</param>
+    [Obsolete("Use RegPlayerCookieAsync instead.")]
     public int RegPlayerCookie(string name, string description, CookieAccess access = CookieAccess.CookieAccess_Public);
+
+    /// <summary>
+    /// Creates a new player preference cookie async.
+    /// if a cookie with the same name or id exists,
+    /// it will return the existing cookie id.
+    /// -1 if unable to create.
+    /// </summary>
+    /// <param name="handler">ID of registered player cookie.</param>
+    public Task<int> RegPlayerCookieAsync(string name, string description, CookieAccess access = CookieAccess.CookieAccess_Public);
 
     /// <summary>
     /// Returns cookieId for the given cookie name.
@@ -111,7 +121,7 @@ public interface IClientprefsApi
     /// </summary>
     /// <param name="handler">Handler to set steamId cookie.</param>
     public void SetPlayerCookie(string steamId, int cookieId, string name);
-    
+
     /// <summary>
     /// Get the value of a Player preference cookie.
     /// </summary>
