@@ -16,7 +16,7 @@ public partial class Clientprefs
 {
 	private bool IsMySQL()
 	{
-		return Config.DatabaseType.Equals("mysql", StringComparison.OrdinalIgnoreCase);
+		return _isMySQL;
 	}
 
 	private DbConnection CreateConnection()

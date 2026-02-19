@@ -91,7 +91,7 @@ public void OnExampleCommand(CCSPlayerController? caller, CommandInfo _)
   "DatabaseUsername": "",
   "DatabasePassword": "",
   "DatabasePort": 3306,
-  "DatabaseSslmode": "",
+  "DatabaseSslmode": "none",
   "Debug": false,
   "ConfigVersion": 1
 }

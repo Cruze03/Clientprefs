@@ -90,5 +90,5 @@ public partial class Clientprefs
     public Dictionary<string, PlayerSetting> PlayerSettings = new();
     public int LatestClientprefID = 0;
 
-    private bool _databaseLoaded = false;
+    private bool _databaseLoaded = false, _isMySQL = false;
 }

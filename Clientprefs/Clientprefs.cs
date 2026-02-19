@@ -20,6 +20,7 @@ public partial class Clientprefs : BasePlugin, IPluginConfig<ClientprefsConfig>
     public void OnConfigParsed(ClientprefsConfig config)
     {
         Config = config;
+        _isMySQL = Config.DatabaseType.Equals("mysql", StringComparison.OrdinalIgnoreCase);
     }
 
     public override void Load(bool hotReload)
